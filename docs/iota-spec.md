@@ -1,8 +1,8 @@
 # Iota
 
-An Iota is – at its core – an opinionated interface. It's a language and platform independent way of defining dependencies so they can be swapped out, nested, or composed over, no matter if they are local libraries, WebAssembly, external microservices, or workers over a message queue.
+An Iota is an opinionated interface for dependencies. It's a language and platform independent way of defining dependencies so they can be swapped out, nested, or composed over, no matter if they are local libraries, WebAssembly, external microservices, or workers over a message queue.
 
-Building towards the Iota spec lets you craft modular monoliths. Applications that are easy to build yet can scale from a single process to distributed, global microservices with little to no changes.
+Building towards the Iota spec lets you craft modular monoliths. Applications that are easy to build yet can scale from a single process monolith to a globally distributed application with little to no changes.
 
 The Iota spec defines
 - The interfaces of an Iota
@@ -25,14 +25,14 @@ Iotas take inspiration from many languages, design patterns, and standards inclu
 ## Design choices
 
 - **Async-only**. Iota interfaces must be asynchronous so any dependency can be replaced with another, regardless of where it exists or what it does.
+- **Contract Driven & Self describing**. Iota bundles must be able to describe their interface and their configuration both statically (pre-execution) and as part of their exposed API while running.
 - **Dependency Injection**. Iotas are passed their requirements from application configuration to maximize flexibility and reusability.
 - **Isolation**. Every Iota is independent from one another and can not interact outside of the iota boundary.
 - **As secure as possible**. Iota adapters and hosts limit access* to system resources like file systems, network ports, ENV variables, etc.
     - **as much as possible given the guest environment.*
-- **Explicit vs implicit**. Iotas must not rely on any mechanism (e.g. namespace, registry, etc) to automatically link with one another. Every iota must be instantiated with its initial configuration and referred to by a unique instance ID.
+- **Explicit vs implicit**. Iotas do not rely on any mechanism (e.g. namespace, registry, etc) to automatically link with one another. Every iota must be instantiated with its initial configuration and referred to by a unique instance ID.
 - **Fault-tolerant**. Iotas propagate success and failure values in the same message so downstream iotas can optionally handle the error or the host can short-circuit execution.
-- **Change-resistant**. Internal iota logic must operate on named input values (vs positional) to protect against basic refactoring.
-- **Self describing**. Iota bundles must be able to describe their interface and their configuration both statically (pre-execution) and as part of their exposed API while running.
+- **Change-resistant**. Internal iota logic must operate on named input values (vs positional) to protect against basic refactoring causing major breakage and excess versioning.
 
 ## Definitions
 
@@ -68,7 +68,7 @@ type Configuration {
     main: string = "main.bin"
 
     "The path to the interface specification"
-    interface: string = "apex.axdl"
+    interface?: string
 }
 ```
 
@@ -79,7 +79,6 @@ For example:
 id: @candle/some_iota
 version: 0.1.0-alpha
 main: file.wasm
-interface: interface.axdl
 ```
 
 `id` and `version` should come from a token if present (see *Verifying authenticity*). If a token is present and the id and/or version do not match, an Iota host should throw an error during validation and refuse to load the module.
@@ -102,7 +101,7 @@ Asserting an Iota bundle is valid requires verifying the token's claims using th
 
 ## Configuration
 
-Iotas take a single JSONlike object (i.e. `Record<string, any>`) used to initialize its state.
+Iotas take a single JSONlike object (i.e. `Map<string, any>`) used to initialize its state.
 
 How to instantiate and configure an Iota is specific to the guest implementation.
 
@@ -110,12 +109,16 @@ How to instantiate and configure an Iota is specific to the guest implementation
 
 Iotas are collections of named interfaces which are, in turn, collections of named actions (i.e. functions). Actions return a message that contains either a successful value or an error (referred to in this spec as a `Result<T>` where `T` is the type of the successful value).
 
-Functions can be defined as one of four variations.
+Actions can be defined as one of four variations.
 
-- Fire and Forget (i.e. `(input: Record<string,any>) -> Result<void>`): An action that returns immediately with a generic success/failure.
-- Request-Response (i.e. `(input: Record<string,any>) -> Future<Result<T>>`): An action that returns a promise/future.
-- Request-Stream (i.e. `(input: Record<string,any>) -> Stream<Result<T>>`): An action that returns a stream of `Result`s.
+- Fire and Forget (i.e. `(input: Map<string, any>) -> Result<void>`): An action that returns immediately with a generic success/failure.
+- Request->Response (i.e. `(input: Map<string, any>) -> Future<Result<T>>`): An action that returns a promise/future.
+- Request->Stream (i.e. `(input: Map<string, any>) -> Stream<Result<T>>`): An action that returns a stream of `Result`s.
 - Channel (i.e. `(input: Stream<Result<I>>) -> Stream<Result<O>>`): An action that takes in a single stream of `Result`s and returns a stream of `Result`s.
+
+## Health checks
+
+Dependencies can fail and iotas must expose a Request->Response action (`health() -> boolean`) that can be called to determine if an iota is healthy.
 
 ## Execution and composition rules
 
@@ -127,7 +130,7 @@ Functions can be defined as one of four variations.
 
 ## Implementations
 
-These will largely be filled in as we finalize v0 implementations.
+*Note: Some of these implementations are partial, existing works and will adapt to the spec as it matures.*
 
 ### WebAssembly Module Iotas
 
@@ -140,16 +143,9 @@ These will largely be filled in as we finalize v0 implementations.
 - Static: *proposal* WebAssembly tarball with an `apex.axdl` file in the root.
 - Dynamic: *proposal*  an exported ReqRes action named `iota::spec()` that returns a terse, binary representation of the interface.
 
-### WebAssembly Component Iotas
+### WebAssembly Module Iotas
 
-**Protocol**: TBD Component Model
-
-**Execution details**: TBD - WebAssembly component instantiated with application-configured security context (e.g. WASI config, et al)
-
-**Interface & Configuration Definition**
-
-- Static: TBD Component Model
-- Dynamic: *proposal* an exported ReqRes action named `iota::spec()` that returns a terse, binary representation of the interface.
+WIP
 
 ### Native Iota Binaries
 
@@ -166,7 +162,7 @@ These will largely be filled in as we finalize v0 implementations.
 
 **Protocol**: RSocket
 
-**Execution details**: Externally managed and considered a single instance.
+**Execution details**: Externally managed processes. Considered a single instance.
 
 **Interface & Configuration Definition**
 
