@@ -149,6 +149,8 @@ WIP
 
 ### Native Iota Binaries
 
+See the [wasmRS](./wasmrs.md) document for more information on the wasmRS protocol.
+
 **Protocol**: RSocket
 
 **Execution details**: Architecture-specific native binary spawned with configuration that connects back to iota host via RSocket
@@ -160,7 +162,7 @@ WIP
 
 ### RSocket endpoints
 
-**Protocol**: RSocket
+**Protocol**: [RSocket](https://rsocket.io)
 
 **Execution details**: Externally managed processes. Considered a single instance.
 
@@ -179,14 +181,3 @@ WIP
 
 - Static: *proposal* TBD, mix of inference and configuration.
 - Dynamic: *proposal* host exposes a `ReqRes` action named `spec` that returns the iota's interface.
-
-### Iotas over message queue
-
-**Protocol**: TBD (JSON or MessagePack).
-
-**Execution details**: Externally managed and considered a single instance.
-
-**Interface & Configuration Definition**
-
-- Static: TBD
-- Dynamic: *proposal* TBD
