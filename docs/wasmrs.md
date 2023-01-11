@@ -1,6 +1,13 @@
-# WebAssembly Reactive Streams (WasmRS) Protocol
+# WebAssembly Reactive Streams (wasmRS) Protocol
 
-An implementation of [reactive streams](https://www.reactive-streams.org) for WebAssembly modules using [RSocket](https://rsocket.io).
+WasmRS is an implementation of [reactive streams](https://www.reactive-streams.org) for WebAssembly modules using [RSocket](https://rsocket.io).
+
+## See Also
+
+- [waPC](https://wapc.io)
+- [RSocket](https://rsocket.io)
+- [Reactive Streams](https://www.reactive-streams.org)
+- [Rust WasmRS How-To](./wasmrs-rust-howto.md)
 
 ## Protocol details
 
