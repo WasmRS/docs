@@ -20,7 +20,7 @@ If you want to start without templates or code generation, check out the [baseli
 Use the `apex` CLI and the project templates in [nanobus/iota](https://github.com/nanobus/iota) to create a new project:
 
 ```sh
-apex new git@github.com:nanobus/iota.git -p templates/rust example
+apex new @iota/rust example
 ```
 
 ## RequestResponse actions
